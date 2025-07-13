@@ -14,10 +14,29 @@ const LoginPage = () => {
 
 
   const [bio, setBio] = useState("");
+
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
 
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
 
+  const onSubmitHandler = (event) => {
+    event.preventDefault();
+
+    if (!agreeToTerms) {
+      alert("Please Agree to the terms of use & privacy policy.!");
+      return;
+    }
+
+    if (currState === "Sign up" && !isDataSubmitted) {
+      setIsDataSubmitted(true);
+      return
+    } else {
+      
+      console.log({ fullName, email, password, bio });
+    }
+
+}
 
 
   return (
@@ -26,14 +45,18 @@ const LoginPage = () => {
       <img src={assets.logo_big} alt="" className="w-[min(30vw,250px)]" />
 
       {/* ------------right--------- */}
-      <form
-        className="border-2 bg-white/8 text-white border-grey-500 p-6 flex flex-col gap-4 rounded-lg shadow-lg"
-      >
+      <form onSubmit={onSubmitHandler} className="border-2 bg-white/8 text-white border-grey-500 p-6 flex flex-col gap-4 rounded-lg shadow-lg">
         <h2 className="font-medium text-2xl flex justify-between items-center">
           {currState}
-          <img
-            onClick={()=> setCurrState(currState === "Sign up" ? "Login" : "Sign up")}
-            src={assets.arrow_icon} className="w-5 cursor-pointer" />
+          {isDataSubmitted && (
+            <img
+              onClick={() => {
+                setIsDataSubmitted(false); 
+              }}
+              src={assets.arrow_icon}
+              className="w-5 cursor-pointer"
+            />
+          )}
         </h2>
 
         {currState === "Sign up" && !isDataSubmitted && (
@@ -96,7 +119,6 @@ const LoginPage = () => {
         <button
           className="py-3 bg-gradient-to-r from-purple-400 to-violet-600 text-white rounded-md cursor-pointer"
           type="submit"
-          onClick={()=> setIsDataSubmitted(true)}
         >
           {currState === "Sign up" ? "Create Account" : "Login Now"}
         </button>
@@ -104,8 +126,9 @@ const LoginPage = () => {
         <div className="flex items-center gap-2 text-sm text-grey-500">
           <input
             type="checkbox"
-            id="terms"
-          />
+            checked={agreeToTerms}
+            onChange={(e)=> setAgreeToTerms(e.target.checked)}
+            id="terms" />
           <label htmlFor="terms">
             Agree to the <span className="underline">terms of use</span> &{" "}
             <span className="underline">privacy policy</span>.
