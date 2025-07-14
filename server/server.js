@@ -5,7 +5,7 @@ import http from "http";
 import { connectDB } from "./lib/db.js";
 
 
-//crete express and http server
+//create express and http server
 const app = express();
 const server = http.createServer(app);
 
@@ -15,6 +15,7 @@ app.use(express.json({ limit: "4mb" }));
 
 app.use("/api/status", (req, res) => res.send("Server is live"))
 
+//connext to mongoDB
 await connectDB();
 
 const PORT = process.env.PORT || 5000;
