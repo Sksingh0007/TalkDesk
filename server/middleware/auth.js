@@ -14,11 +14,6 @@ export const protectRoute = async (req, res, next) => {
         }
         //Verifying the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        if (!decoded) {
-            return res.status(401).json({
-                message:"Invalid token"
-            })
-        }
 
         const user = await User.findById(decoded.userId)
         if (!user) {
@@ -31,7 +26,8 @@ export const protectRoute = async (req, res, next) => {
         next(); // Proceed to the next middleware or route handler
 
     } catch (error) {
-        return res.status(500).json({
+        return res.status(401).json({
+            success: false,
             message: "You are not authorized to access this route"
         })
     }

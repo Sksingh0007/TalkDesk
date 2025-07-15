@@ -8,7 +8,7 @@ import bcrypt from "bcryptjs";
 export const signup = async (req, res) => {
   try {
     //getting data from re.body
-    const { email, fullName, password, profilePic, bio } = req.body;
+    const { email, fullName, password, bio } = req.body;
     // Validating data
     if (!email || !fullName || !password || !bio) {
       return res.status(400).json({
@@ -38,17 +38,18 @@ export const signup = async (req, res) => {
     const token = generateToken(user._id);
 
     //Sending response
-    res.json.status(201).json({
+    res.status(201).json({
       success: true,
       userData: user,
       token,
       message: "User Account created successfully",
     });
   } catch (error) {
+      console.log(error)
     res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error.message,
+      error: error,
     });
   }
 };
@@ -107,7 +108,7 @@ export const checkAuth = (req, res) => {
 
 //Controllers to update user profile details
 
-const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
     try {
         const { profilePic, bio, fullName } = req.body;
 
@@ -126,6 +127,9 @@ const updateProfile = async (req, res) => {
         //Sending response
         res.status(201).json({success: true, user: updatedUser})
     } catch (error) {
-        
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        })
     }
 }
