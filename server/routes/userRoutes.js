@@ -3,7 +3,7 @@ import { checkAuth, login, signup, updateProfile } from "../controllers/userCont
 import { protectRoute } from "../middleware/auth.js";
 
 const userRouter = express.Router();
-
+ 
 //Route for signup
 
 userRouter.post("/signup", signup);
