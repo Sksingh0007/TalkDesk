@@ -1,7 +1,7 @@
 import cloudinary from "../lib/cloudinary.js";
 import Message from "../models/message.js";
 import User from "../models/user.js";
-import{io, userSocketMap} from "../server.js"
+import { io, userSocketMap } from "../server.js";
 
 //Get all users except the logged in user
 
@@ -22,6 +22,8 @@ export const getUserForSidebar = async (req, res) => {
       });
       if (messages.length > 0) {
         unseenMessages[user._id] = messages.length;
+      } else {
+        unseenMessages[user._id] = 0;
       }
     });
     await Promise.all(promises);
@@ -33,8 +35,8 @@ export const getUserForSidebar = async (req, res) => {
   } catch (error) {
     console.log(error.message);
     res.status(500).json({
-        success: false,
-        message : error.message
+      success: false,
+      message: error.message,
     });
   }
 };
@@ -42,92 +44,73 @@ export const getUserForSidebar = async (req, res) => {
 //Get all the messages from selected user
 
 export const getMessages = async (req, res) => {
-    try {
-      const myId = req.user._id;
-      const { id: selectedUserId } = req.params;
+  try {
+    const myId = req.user._id;
+    const { id: selectedUserId } = req.params;
 
-      const messages = await Message.find({
-        $or: [
-          { senderId: myId, receiverId: selectedUserId },
-          { senderId: selectedUserId, receiverId: myId },
-        ],
-      });
-      await Message.updateMany(
+    const messages = await Message.find({
+      $or: [
+        { senderId: myId, receiverId: selectedUserId },
         { senderId: selectedUserId, receiverId: myId },
-        { seen: true }
-      );
-      res.json({
-        success: true,
-        messages,
-      });
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-}
+      ],
+    });
+    await Message.updateMany(
+      { senderId: selectedUserId, receiverId: myId },
+      { seen: true }
+    );
+    res.json({
+      success: true,
+      messages,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
-// api to mark message as seen using message id
-
-export const markMessageAsSeen = async (req, res) => {
-    try {
-        const { id } = req.params;
-        await Message.findByIdAndUpdate(id, { seen: true });
-
-        res.json({
-            success: true,
-            message : "Merked as seen"
-        })
-
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-}
+// api to mark message as seen using message id is handled in the getUsers itself
 
 //Send message to selected user
 
 export const sendMessage = async (req, res) => {
-    try {
-        const { text, image } = req.body;
-        const receiverId = req.params.id
-        const senderId = req.user._id
-        
-        let imageUrl;
-        if (image) {
-            const uploadResponse = await cloudinary.uploader.upload(image)
-            imageUrl = uploadResponse.secure_url;
-        }
-        const newMessage = await Message.create({
-            senderId,
-            receiverId,
-            text,
-            image: imageUrl
-        })
-      
-        //Emit the new message to the recriver socket instantly
-        const receiverSocketId = userSocketMap[receiverId];
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit("newMessage", newMessage)
-        }
+  try {
+    const { text, image } = req.body;
+    const receiverId = req.params.id;
+    const senderId = req.user._id;
 
-        res.status(200).json({
-            success: true,
-            newMessage
-        })
+    let imageUrl;
+    if (image) {
+      const uploadResponse = await cloudinary.uploader.upload(image);
+      imageUrl = uploadResponse.secure_url;
+    }
+    const newMessage = await Message.create({
+      senderId,
+      receiverId,
+      text,
+      image: imageUrl,
+    });
 
-
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).json({
-        success: false,
-        message: error.message,
+    //Emit the new message to the recriver socket instantly
+    const receiverSocketId = userSocketMap[receiverId];
+    if (receiverSocketId) {
+      receiverSocketId.forEach((socketId) => {
+        io.to(socketId).emit("newMessage", newMessage);
+        io.to(socketId).emit("updateUnseen"); // ✅ NEW LINE
       });
     }
-}
 
+    res.status(200).json({
+      success: true,
+      newMessage,
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

@@ -1,6 +1,6 @@
 import express from "express"
 import { protectRoute } from "../middleware/auth.js";
-import { getMessages, getUserForSidebar, markMessageAsSeen, sendMessage } from "../controllers/messageControllers.js";
+import { getMessages, getUserForSidebar, sendMessage } from "../controllers/messageControllers.js";
 
 const messageRouter = express.Router();
 
@@ -11,8 +11,6 @@ messageRouter.get("/users", protectRoute, getUserForSidebar)
 //Get all messages from a selected user
 messageRouter.get("/:id", protectRoute, getMessages);
 
-//Mark message as seen message id
-messageRouter.put("/mark/:id", protectRoute, markMessageAsSeen)
 
 //Sending message to receiver instantly using Socketio
 messageRouter.post("/send/:id", protectRoute, sendMessage)
