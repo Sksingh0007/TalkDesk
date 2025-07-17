@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import assets from '../assets/assets'
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { AuthContext } from '../../context/AuthContext';
 
 
 const LoginPage = () => {
@@ -19,24 +20,30 @@ const LoginPage = () => {
 
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
+  const {login} = useContext(AuthContext)
 
-  const onSubmitHandler = (event) => {
-    event.preventDefault();
 
-    if (!agreeToTerms) {
-      alert("Please Agree to the terms of use & privacy policy.!");
-      return;
-    }
+const onSubmitHandler = (event) => {
+  event.preventDefault();
 
-    if (currState === "Sign up" && !isDataSubmitted) {
-      setIsDataSubmitted(true);
-      return
-    } else {
-      
-      console.log({ fullName, email, password, bio });
-    }
+  if (!agreeToTerms) {
+    alert("Please Agree to the terms of use & privacy policy.!");
+    return;
+  }
 
-}
+  if (currState === "Sign up" && !isDataSubmitted) {
+    setIsDataSubmitted(true);
+    return;
+  }
+
+  const credentials =
+    currState === "Sign up"
+      ? { fullName, email, password, bio }
+      : { email, password };
+
+  login(currState === "Sign up" ? "signup" : "login", credentials);
+};
+
 
 
   return (

@@ -38,6 +38,7 @@ export const signup = async (req, res) => {
     const token = generateToken(user._id);
 
     //Sending response
+    user.password = undefined;
     res.status(201).json({
       success: true,
       userData: user,
@@ -82,10 +83,11 @@ export const login = async (req, res) => {
         }
         //Gennerating JWT token
         const token = generateToken(user._id);
-        //Sending response
+      //Sending response
+      user.password = undefined;
         res.status(200).json({
             success: true,
-            userData: user,
+          userData: user,
             token,
             message: "User logged in successfully",
         })
@@ -112,7 +114,7 @@ export const updateProfile = async (req, res) => {
     try {
         const { profilePic, bio, fullName } = req.body;
 
-        //It will be protected by route so re.body will contain user info as passed by middleware
+        //It will be protected by route so req.body will contain user info as passed by middleware
         const userId = req.user._id;
         let updatedUser;
         if (!profilePic) {
