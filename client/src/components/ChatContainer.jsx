@@ -1,18 +1,25 @@
-import React, { useContext, useEffect,useRef, useState } from 'react'
-import assets, { messagesDummyData } from '../assets/assets'
-import { formatMessageTime } from '../lib/utils'
-import { ChatContext } from '../../context/ChatContext'
-import { AuthContext } from '../../context/AuthContext'
-import toast from 'react-hot-toast'
+import React, { useContext, useEffect, useRef, useState } from "react";
+import assets, { messagesDummyData } from "../assets/assets";
+import { formatMessageTime } from "../lib/utils";
+import { ChatContext } from "../../context/ChatContext";
+import { AuthContext } from "../../context/AuthContext";
+import toast from "react-hot-toast";
+import EmojiPicker from "emoji-picker-react";
 
 const ChatContainer = () => {
+  const { messages, selectedUser, setSelectedUser, sendMessage, getMessages } =
+    useContext(ChatContext);
+  const { authUser, onlineUsers } = useContext(AuthContext);
 
-  const {messages, selectedUser, setSelectedUser, sendMessage, getMessages} = useContext(ChatContext)
-  const {authUser, onlineUsers} = useContext(AuthContext);
-  
-  const scrollEnd = useRef()
+  const scrollEnd = useRef();
 
   const [input, setInput] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  //Handle emoji click function
+  const handleEmojiClick = (emojiData) => {
+    setInput((prev) => prev + emojiData.emoji);
+  };
 
   //Handle sending message
   const handleSendMessage = async (e) => {
@@ -20,7 +27,7 @@ const ChatContainer = () => {
     if (input.trim() === "") return null;
     await sendMessage({ text: input.trim() });
     setInput("");
-  }
+  };
 
   //Handle sending an image
   const handleSendImage = async (e) => {
@@ -35,22 +42,22 @@ const ChatContainer = () => {
 
     reader.onloadend = async (e) => {
       await sendMessage({ image: reader.result });
-      inputElement.value = ""
-    }
+      inputElement.value = "";
+    };
     reader.readAsDataURL(file);
-  }
+  };
 
   useEffect(() => {
     if (selectedUser) {
-      getMessages(selectedUser._id)
+      getMessages(selectedUser._id);
     }
-  },[selectedUser])
- 
+  }, [selectedUser]);
+
   useEffect(() => {
     if (scrollEnd.current && messages) {
-      scrollEnd.current.scrollIntoView({behavior: "smooth"})
+      scrollEnd.current.scrollIntoView({ behavior: "smooth" });
     }
-  },[messages])
+  }, [messages]);
 
   return selectedUser ? (
     <div className="h-full overflow-scroll relative backdrop-blur-lg">
@@ -148,8 +155,29 @@ const ChatContainer = () => {
               className="w-5 mr-2 cursor-pointer"
             />
           </label>
+          <div
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
+            className="w-8 h-8 flex items-center justify-center cursor-pointer"
+          >
+            <img src={assets.emoji_icon} alt="Emoji" className="w-6 h-6" />
+          </div>
+
+          {showEmojiPicker && (
+            <div className="absolute bottom-16 right-4 z-50 shadow-xl border border-gray-600 rounded-lg bg-white dark:bg-gray-800 max-h-[300px] overflow-y-auto w-[280px]">
+              <EmojiPicker
+                onEmojiClick={handleEmojiClick}
+                height={300} // optional if your library supports it
+                width={280}
+              />
+            </div>
+          )}
         </div>
-        <img onClick={handleSendMessage || handleSendImage} src={assets.send_button} alt="" className="w-7 cursor-pointer" />
+        <img
+          onClick={handleSendMessage || handleSendImage}
+          src={assets.send_button}
+          alt=""
+          className="w-7 cursor-pointer"
+        />
       </div>
     </div>
   ) : (
@@ -163,6 +191,6 @@ const ChatContainer = () => {
       <p className="text-lg font-medium text-white">Chat anytime, anywhere</p>
     </div>
   );
-}
+};
 
-export default ChatContainer
+export default ChatContainer;
