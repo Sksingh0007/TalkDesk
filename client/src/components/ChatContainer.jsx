@@ -5,6 +5,7 @@ import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
+import { FaRegSmile } from "react-icons/fa";
 
 const ChatContainer = () => {
   const { messages, selectedUser, setSelectedUser, sendMessage, getMessages } =
@@ -157,9 +158,9 @@ const ChatContainer = () => {
           </label>
           <div
             onClick={() => setShowEmojiPicker((prev) => !prev)}
-            className="w-8 h-8 flex items-center justify-center cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center cursor-pointer rounded-full "
           >
-            <img src={assets.emoji_icon} alt="Emoji" className="w-6 h-6" />
+            <FaRegSmile className="text-xl text-gray-600 dark:text-white" />
           </div>
 
           {showEmojiPicker && (
