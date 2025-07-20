@@ -49,16 +49,19 @@ const onSubmitHandler = (event) => {
   return (
     <div className="min-h-screen bg-cover bg-center flex items-center justify-center gap-8 sm:justify-evenly max-sm:flex-col backdrop-blur-2xl">
       {/* --------------left------------ */}
-      <img src={assets.logo_big} alt="" className="w-[min(30vw,250px)]" />
+      <img src={assets.logo_big} alt="" className="w-[min(40vw,500px)]" />
 
       {/* ------------right--------- */}
-      <form onSubmit={onSubmitHandler} className="border-2 bg-white/8 text-white border-grey-500 p-6 flex flex-col gap-4 rounded-lg shadow-lg">
+      <form
+        onSubmit={onSubmitHandler}
+        className="border-2 bg-white/8 text-white border-grey-500 p-6 flex flex-col gap-4 rounded-lg shadow-lg"
+      >
         <h2 className="font-medium text-2xl flex justify-between items-center">
           {currState}
           {isDataSubmitted && (
             <img
               onClick={() => {
-                setIsDataSubmitted(false); 
+                setIsDataSubmitted(false);
               }}
               src={assets.arrow_icon}
               className="w-5 cursor-pointer"
@@ -134,8 +137,9 @@ const onSubmitHandler = (event) => {
           <input
             type="checkbox"
             checked={agreeToTerms}
-            onChange={(e)=> setAgreeToTerms(e.target.checked)}
-            id="terms" />
+            onChange={(e) => setAgreeToTerms(e.target.checked)}
+            id="terms"
+          />
           <label htmlFor="terms">
             Agree to the <span className="underline">terms of use</span> &{" "}
             <span className="underline">privacy policy</span>.
