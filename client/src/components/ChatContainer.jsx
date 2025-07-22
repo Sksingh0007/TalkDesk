@@ -226,7 +226,7 @@ const ChatContainer = () => {
         alt=""
         className="max-w-16"
       />
-      <p className="text-lg font-medium text-white">Chat anytime, anywhere</p>
+      <p className="text-lg font-medium">Chat anytime, anywhere</p>
     </div>
   );
 };
