@@ -89,14 +89,9 @@ const ChatContainer = () => {
             alt="back"
             className="md:hidden w-6 h-6 cursor-pointer"
           />
-          <img
-            src={assets.help_icon}
-            alt="help"
-            className="hidden md:block w-5 h-5"
-          />
           <Button
             variant="outline"
-            className={"rounded-xs"}
+            className="rounded-xs cursor-pointer"
             onClick={() => setIsOpen(!isOpen)}
           >
             Media
@@ -205,7 +200,7 @@ const ChatContainer = () => {
             <button
               type="button"
               onClick={() => setShowEmojiPicker((prev) => !prev)}
-              className="w-6 h-6 flex items-center justify-center"
+              className="w-6 h-6 flex items-center justify-center cursor-pointer"
             >
               <FaRegSmile className="text-muted-foreground w-6 h-6" />
             </button>
@@ -215,7 +210,7 @@ const ChatContainer = () => {
           <button
             type="button"
             onClick={handleSendMessage}
-            className="w-8 h-8 flex items-center justify-center"
+            className="w-8 h-8 flex items-center justify-center cursor-pointer"
           >
             <IoSendSharp className="text-muted-foreground w-6 h-6" />
           </button>

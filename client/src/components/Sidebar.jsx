@@ -3,22 +3,25 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 import assets from "../assets/assets";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import { Input } from "@/components/ui/input";
+import { Button } from "./ui/button";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { AvatarImage } from "@radix-ui/react-avatar";
+
 import {
   SparklesIcon,
   UserIcon,
   ArrowRightOnRectangleIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "./ui/button";
-import { Avatar, AvatarFallback } from "./ui/avatar";
-import { AvatarImage } from "@radix-ui/react-avatar";
 import { Settings } from "lucide-react";
 
 const Sidebar = () => {
@@ -30,6 +33,7 @@ const Sidebar = () => {
     unseenMessages,
     setUnseenMessages,
   } = useContext(ChatContext);
+
   const { logout, onlineUsers, authUser } = useContext(AuthContext);
 
   const [input, setInput] = useState("");
@@ -49,66 +53,42 @@ const Sidebar = () => {
     <aside className="h-full w-72 bg-background p-2 flex flex-col">
       {/* Top Section */}
       <div className="pb-4 space-y-4">
-        {/* Branding + Menu */}
+        {/* Search */}
         <div className="flex items-center justify-between">
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative w-full">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="Search user..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="pl-10 w-fit  "
+              className="pl-10 w-full"
             />
           </div>
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SparklesIcon className="h-6 w-6 text-primary cursor-pointer" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              sideOffset={8}
-              className="w-48 rounded-xl"
-            >
-              <DropdownMenuItem
-                onClick={() => navigate("/profile")}
-                className="flex items-center gap-2 text-sm"
-              >
-                <UserIcon className="h-4 w-4 text-muted-foreground" />
-                Edit Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={logout}
-                className="flex items-center gap-2 text-sm text-destructive"
-              >
-                <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
         </div>
+
         <hr />
 
+        {/* Friend / Group Buttons */}
         <div className="flex flex-col gap-2 w-full">
           <Button
-            variant={"outline"}
-            className="justify-start w-full rounded-xs"
+            variant="outline"
+            className="justify-start w-full rounded-xs cursor-pointer"
           >
             Friend
           </Button>
           <Button
-            variant={"outline"}
-            className="justify-start w-full rounded-xs"
+            variant="outline"
+            className="justify-start w-full rounded-xs cursor-pointer"
           >
             Group
           </Button>
         </div>
+
         <hr />
-        {/* Search */}
       </div>
 
       {/* User List */}
-
       <div className="flex-1 overflow-y-auto flex flex-col gap-2">
         {filteredUsers.map((user) => {
           const isSelected = selectedUser?._id === user._id;
@@ -123,11 +103,11 @@ const Sidebar = () => {
                 setUnseenMessages((prev) => ({ ...prev, [user._id]: 0 }));
                 setSelectedUser(user);
               }}
-              className="w-full justify-start gap-3 rounded-xs px-4 py-2 h-fit "
+              className="w-full justify-start gap-3 rounded-xs px-4 py-2 h-fit cursor-pointer"
             >
-              {/* Avatar with online dot */}
-              <div className="relative">
-                <Avatar className="h-10 w-10 border">
+              {/* Avatar */}
+              <div className="relative cursor-pointer">
+                <Avatar className="h-10 w-10 border cursor-pointer">
                   <AvatarImage src={user?.profilePic || assets.avatar_icon} />
                   <AvatarFallback>
                     {user.fullName
@@ -143,7 +123,7 @@ const Sidebar = () => {
                 />
               </div>
 
-              {/* User name */}
+              {/* Name */}
               <div className="flex flex-1 flex-col items-start justify-center">
                 <p className="text-sm font-medium">{user.fullName}</p>
               </div>
@@ -158,12 +138,13 @@ const Sidebar = () => {
           );
         })}
       </div>
+
+      {/* Current User Info + Dropdown */}
       <div className="rounded-xs mt-2 p-2 bg-foreground/20 border-2 flex items-center justify-between px-2">
-        {/* Avatar + Name */}
-        <div className="flex items-center gap-2">
-          <Avatar className="border w-10 h-10">
+        <div className="flex items-center gap-2 cursor-pointer">
+          <Avatar className="border w-10 h-10 cursor-pointer">
             <AvatarImage
-              className=" rounded-full object-cover"
+              className="rounded-full object-cover"
               src={authUser?.profilePic || assets.avatar_icon}
             />
             <AvatarFallback>
@@ -180,21 +161,28 @@ const Sidebar = () => {
           </div>
         </div>
 
-        {/* Dropdown Menu */}
+        {/* Settings dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Settings className="w-8 h-8 " />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 cursor-pointer"
+            >
+              <Settings className="w-8 h-8" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => navigate("/profile")}>
+            <DropdownMenuItem
+              onClick={() => navigate("/profile")}
+              className="cursor-pointer"
+            >
               <UserIcon className="w-4 h-4 mr-2 text-muted-foreground" />
               Edit Profile
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={logout}
-              className="text-destructive focus:bg-destructive/10"
+              className="text-destructive focus:bg-destructive/10 cursor-pointer"
             >
               <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
               Logout
