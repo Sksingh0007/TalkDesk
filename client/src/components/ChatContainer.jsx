@@ -131,9 +131,9 @@ const ChatContainer = () => {
 
                 {/* Message bubble */}
                 <div
-                  className={`px-2 py-2 text-sm rounded-lg max-w-[60%] break-words ${
-                    isSelf ? "bg-primary" : "bg-gray-400 text-black"
-                  }  ${isSelf ? "rounded-br-none" : "rounded-bl-none"}`}
+                  className={`relative flex gap-1 px-3 py-2 pr-15 text-sm rounded-lg max-w-[60%] break-words ${
+                    isSelf ? "bg-primary text-white" : "bg-gray-300 text-black"
+                  } ${isSelf ? "rounded-br-none" : "rounded-bl-none"}`}
                 >
                   {msg.image ? (
                     <img
@@ -142,27 +142,14 @@ const ChatContainer = () => {
                       className="rounded-md max-w-full object-cover"
                     />
                   ) : (
-                    msg.text
+                    <span>{msg.text}</span>
                   )}
-                </div>
 
-                {/* RIGHT SIDE: Avatar or placeholder */}
-                {isSelf && (
-                  <div className="flex flex-col items-center text-xs text-muted-foreground w-6">
-                    {isLastInGroup ? (
-                      <Avatar>
-                        <AvatarImage
-                          src={authUser?.profilePic || assets.avatar_icon}
-                          alt=""
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <p>{formatMessageTime(msg.createdAt)}</p>
-                      </Avatar>
-                    ) : (
-                      <div className="w-10 h-10 invisible" />
-                    )}
-                  </div>
-                )}
+                  {/* Time positioned at the bottom right of the bubble */}
+                  <p className="absolute bottom-1 right-2 text-[10px] text-muted">
+                    {formatMessageTime(msg.createdAt)}
+                  </p>
+                </div>
               </div>
             );
           })}
