@@ -1,73 +1,86 @@
-import React, { useContext, useEffect, useState } from 'react'
-import assets, { imagesDummyData } from '../assets/assets';
-import { ChatContext } from '../../context/ChatContext';
-import { AuthContext } from '../../context/AuthContext';
+import React, { useContext, useEffect, useState } from "react";
+import assets from "../assets/assets";
+import { ChatContext } from "../../context/ChatContext";
+import { AuthContext } from "../../context/AuthContext";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { Button } from "./ui/button";
 
-const RightSidebar = () => {
-
+const RightSidebar = ({ isOpen }) => {
   const { selectedUser, messages } = useContext(ChatContext);
-  const { logout, onlineUsers } = useContext(AuthContext);
-  const [msgImages, setMsgImages] = useState([])
+  const { onlineUsers } = useContext(AuthContext);
+  const [msgImages, setMsgImages] = useState([]);
 
   //Get all the images from the messages and store them to state
   useEffect(() => {
-    setMsgImages(
-      messages.filter(msg => msg.image).map(msg=>msg.image)
-    )
-  },[messages])
+    setMsgImages(messages.filter((msg) => msg.image).map((msg) => msg.image));
+  }, [messages]);
 
   return (
-    selectedUser && (
-      <div
-        className={`bg-[#8185B2]/10 w-full relative overflow-y-scroll rounded-l-xl
-     ${selectedUser ? "max-md:hidden" : ""}`}
-      >
-        <div className="pt-16 flex flex-col items-center gap-2 text-xs font-light mx-auto">
-          <img
-            src={selectedUser?.profilePic || assets.avatar_icon}
-            alt=""
-            className="w-20 aspect-[1/1] rounded-full shrink-0"
-          />
-          <h1 className="px-10 text-xl font-medium mx-auto flex items-center gap-2">
-            {onlineUsers.includes(selectedUser._id) && (
-              <p className="w-2 h-2 rounded-full bg-green-500"></p>
-            )}
-            {selectedUser.fullName}
-          </h1>
-          <p className="px-10 mx-auto">{selectedUser.bio}</p>
-        </div>
-
-        <hr className="border-[#fffff5f0] my-4" />
-
-        <div className="px-5 text-xs">
-          <p>Media</p>
-          <div
-            className="mt-2 max-h-[200px] overflow--y-scroll grid grid-cols-2
-        gap-4 opacity-80"
-          >
-            {msgImages.map((url, index) => (
-              <div
-                key={index}
-                onClick={() => window.open(url)}
-                className="cursor-pointer rounded"
-              >
-                <img src={url} alt="" className="h-full rounded-md" />
+    <>
+      {isOpen && (
+        <div className="w-[500px] h-full bg-sidebar border-l border-border overflow-y-auto">
+          {/* Cover Section */}
+          <div className="relative h-40 bg-accent rounded-r-sm">
+            {/* Profile Image with Online Status Dot */}
+            <div className="absolute left-4 -bottom-20">
+              <div className="relative w-40 h-40">
+                <img
+                  src={selectedUser?.profilePic || assets.avatar_icon}
+                  alt=""
+                  className="w-40 h-40 rounded-full object-cover border-4 border-muted shadow-md"
+                />
+                <span
+                  className={`absolute bottom-3 right-5 w-5 h-5 rounded-full border-2 border-muted ${
+                    onlineUsers.includes(selectedUser?._id)
+                      ? "bg-green-500"
+                      : "bg-gray-400"
+                  }`}
+                />
               </div>
-            ))}
+            </div>
+          </div>
+
+          {/* Name (no dot here anymore) */}
+          <div className="pt-25 pl-4 pr-4 bf">
+            <h2 className="text-2xl font-semibold text-primary">
+              {selectedUser?.fullName}
+            </h2>
+          </div>
+
+          {/* About Box */}
+          <div className="mt-4 px-4">
+            <div className="rounded-lg border bg-muted-foreground/10 p-4 shadow-sm">
+              <h3 className="text-sm font-medium  mb-2">About</h3>
+              <p className="text-sm text-muted-foreground ">
+                {selectedUser?.bio || "No bio provided."}
+              </p>
+            </div>
+          </div>
+
+          {/* Media Box */}
+          <div className="mt-4 px-4">
+            <div className="rounded-lg border h-[46vh] bg-muted-foreground/10 p-4 shadow-sm">
+              <h3 className="text-sm font-medium  mb-2">Media</h3>
+              {msgImages.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2 h-[38vh] overflow-y-auto pr-1">
+                  {msgImages.map((url, index) => (
+                    <img
+                      key={index}
+                      src={url}
+                      onClick={() => window.open(url)}
+                      className="rounded-md object-cover w-full h-32  cursor-pointer"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No media found.</p>
+              )}
+            </div>
           </div>
         </div>
-
-        <button
-          onClick={()=>logout()}
-          className="absolute bottom-5 left-1/2 transform -translate-x-1/2 
-      bg-gradient-to-r from-purple-400 to-violet-600 border-none
-      text-sm font-light py-2 px-20 rounded-full cursor-pointer"
-        >
-          Logout
-        </button>
-      </div>
-    )
+      )}
+    </>
   );
 };
 
-export default RightSidebar
+export default RightSidebar;

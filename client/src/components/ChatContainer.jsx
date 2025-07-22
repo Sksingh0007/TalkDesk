@@ -1,11 +1,16 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import assets, { messagesDummyData } from "../assets/assets";
+import assets from "../assets/assets";
 import { formatMessageTime } from "../lib/utils";
 import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
-import { FaRegSmile } from "react-icons/fa";
+import { FaPlus, FaRegSmile } from "react-icons/fa";
+import { Avatar, AvatarImage } from "./ui/avatar";
+import { Input } from "./ui/input";
+import { IoSendSharp } from "react-icons/io5";
+import { Button } from "./ui/button";
+import RightSidebar from "./RightSidebar";
 
 const ChatContainer = () => {
   const { messages, selectedUser, setSelectedUser, sendMessage, getMessages } =
@@ -16,6 +21,7 @@ const ChatContainer = () => {
 
   const [input, setInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   //Handle emoji click function
   const handleEmojiClick = (emojiData) => {
@@ -42,6 +48,7 @@ const ChatContainer = () => {
     const reader = new FileReader();
 
     reader.onloadend = async (e) => {
+      if (!e.target.result) return;
       await sendMessage({ image: reader.result });
       inputElement.value = "";
     };
@@ -61,128 +68,176 @@ const ChatContainer = () => {
   }, [messages]);
 
   return selectedUser ? (
-    <div className="h-full overflow-scroll relative backdrop-blur-lg">
-      {/* -------------header--------------------- */}
-      <div className="flex items-center gap-3 py-3 mx-4 border-b border-stone-500">
-        <img
-          src={selectedUser.profilePic || assets.avatar_icon}
-          alt="martin-img"
-          className="w-8 rounded-full"
-        />
-        <p className="flex-1 text-lg text-white flex items-center gap-2">
-          {selectedUser.fullName}
-          {onlineUsers.includes(selectedUser._id) && (
-            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-          )}
-        </p>
-        <img
-          onClick={() => setSelectedUser(null)}
-          src={assets.arrow_icon}
-          alt="arrow-icon"
-          className="md:hidden max-w-7 cursor-pointer"
-        />
-        <img
-          src={assets.help_icon}
-          alt="help-icon"
-          className="max-md:hidden max-w-5"
-        />
-      </div>
-      {/* Chat Area */}
-      <div className="flex flex-col h-[calc(100%-120px)] overflow-y-scroll p-3 pb-6">
-        {messages?.map((msg) => (
-          <div
-            key={msg._id}
-            className={`flex items-end gap-2 justify-end ${
-              msg.senderId !== authUser._id && "flex-row-reverse"
-            }`}
-          >
-            {msg.image ? (
-              <img
-                src={msg.image}
-                alt=""
-                className="max-w-[230px] border border-grey-700 rounded-lg overflow-hidden mb-8"
-              />
-            ) : (
-              <p
-                className={`p-2 max-w-[200px] md:text-sm font-light rounded-lg mb-8 break-all bg-violet-500/30 text-white ${
-                  msg.senderId === authUser._id
-                    ? "rounded-br-none"
-                    : "rounded-bl-none"
-                }`}
-              >
-                {msg.text}
-              </p>
+    <div className="flex h-full w-full relative bg-card ">
+      {/* Header */}
+      <div className="flex flex-col w-full h-full">
+        <div className="flex items-center gap-3 px-4 py-3 border-b">
+          <img
+            src={selectedUser.profilePic || assets.avatar_icon}
+            alt="user-img"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+          <p className="flex-1 text-sm font-medium flex items-center gap-2">
+            {selectedUser.fullName}
+            {onlineUsers.includes(selectedUser._id) && (
+              <span className="w-2 h-2 rounded-full bg-green-500" />
             )}
-            <div className="text-center text-xs">
-              <img
-                src={
-                  msg.senderId === authUser._id
-                    ? authUser.profilePic || assets.avatar_icon
-                    : selectedUser?.profilePic || assets.avatar_icon
-                }
-                alt=""
-                className="w-7 rounded-full"
-              />
-              <p className="text-gray-500">
-                {formatMessageTime(msg.createdAt)}
-              </p>
-            </div>
-          </div>
-        ))}
-        <div ref={scrollEnd}></div>
-      </div>
-      {/* ----------------bottom area  ----------*/}
-      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-3 p-3">
-        <div className="flex-1 flex items-center bg-gray-100/12 px-3 rounded-full">
-          <input
-            onChange={(e) => setInput(e.target.value)}
-            value={input}
-            onKeyDown={(e) => (e.key === "Enter" ? handleSendMessage(e) : null)}
-            type="text"
-            placeholder="Send a message"
-            className="flex-1 text-sm p-3 border-none rounded-lg outline-none text-white placeholder-gray-400"
+          </p>
+          <img
+            onClick={() => setSelectedUser(null)}
+            src={assets.arrow_icon}
+            alt="back"
+            className="md:hidden w-6 h-6 cursor-pointer"
           />
-          <input
-            onChange={handleSendImage}
-            type="file"
-            id="image"
-            accept="image/png,image/jpeg"
-            hidden
+          <img
+            src={assets.help_icon}
+            alt="help"
+            className="hidden md:block w-5 h-5"
           />
-          <label htmlFor="image">
-            <img
-              src={assets.gallery_icon}
-              alt=""
-              className="w-5 mr-2 cursor-pointer"
-            />
-          </label>
-          <div
-            onClick={() => setShowEmojiPicker((prev) => !prev)}
-            className="w-8 h-8 flex items-center justify-center cursor-pointer rounded-full "
+          <Button
+            variant="outline"
+            className={"rounded-xs"}
+            onClick={() => setIsOpen(!isOpen)}
           >
-            <FaRegSmile className="text-xl text-gray-600 dark:text-white" />
+            Media
+          </Button>
+        </div>
+
+        {/* Chat Area */}
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-6">
+          {messages?.map((msg, index) => {
+            const isSelf = msg.senderId === authUser._id;
+            const nextMsg = messages[index + 1];
+            const isLastInGroup = !nextMsg || nextMsg.senderId !== msg.senderId;
+
+            return (
+              <div
+                key={msg._id}
+                className={`flex gap-2 mb-2 ${
+                  isSelf ? "justify-end" : "justify-start"
+                } items-end`}
+              >
+                {/* LEFT SIDE: Avatar or placeholder */}
+                {!isSelf && (
+                  <div className="flex flex-col items-center text-xs text-muted-foreground w-6">
+                    {isLastInGroup ? (
+                      <Avatar>
+                        <AvatarImage
+                          src={selectedUser?.profilePic || assets.avatar_icon}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      </Avatar>
+                    ) : (
+                      <div className="w-10 h-10 invisible" /> // Invisible placeholder
+                    )}
+                  </div>
+                )}
+
+                {/* Message bubble */}
+                <div
+                  className={`px-2 py-2 text-sm rounded-lg max-w-[60%] break-words ${
+                    isSelf ? "bg-primary" : "bg-gray-400 text-black"
+                  }  ${isSelf ? "rounded-br-none" : "rounded-bl-none"}`}
+                >
+                  {msg.image ? (
+                    <img
+                      src={msg.image}
+                      alt="Sent image"
+                      className="rounded-md max-w-full object-cover"
+                    />
+                  ) : (
+                    msg.text
+                  )}
+                </div>
+
+                {/* RIGHT SIDE: Avatar or placeholder */}
+                {isSelf && (
+                  <div className="flex flex-col items-center text-xs text-muted-foreground w-6">
+                    {isLastInGroup ? (
+                      <Avatar>
+                        <AvatarImage
+                          src={authUser?.profilePic || assets.avatar_icon}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <p>{formatMessageTime(msg.createdAt)}</p>
+                      </Avatar>
+                    ) : (
+                      <div className="w-10 h-10 invisible" />
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div ref={scrollEnd} />
+        </div>
+
+        {/* Bottom Input Bar */}
+        <div className="border-t px-3 py-2 flex items-center gap-2 ">
+          {/* Input area with attachment, text, emoji */}
+          <div className="flex items-center px-3 py-1 rounded-full flex-1  gap-3">
+            {/* Attachment icon */}
+            <label htmlFor="image" className="cursor-pointer">
+              <Input
+                onChange={handleSendImage}
+                type="file"
+                id="image"
+                accept="image/png,image/jpeg"
+                hidden
+              />
+              <FaPlus className="text-muted-foreground w-6 h-6" />
+            </label>
+
+            {/* Text input */}
+            <Input
+              onChange={(e) => setInput(e.target.value)}
+              value={input}
+              onKeyDown={(e) => e.key === "Enter" && handleSendMessage(e)}
+              type="text"
+              placeholder="Type a message"
+              className="flex-1 bg-muted border-2 border-background "
+            />
+
+            {/* Emoji picker toggle */}
+            <button
+              type="button"
+              onClick={() => setShowEmojiPicker((prev) => !prev)}
+              className="w-6 h-6 flex items-center justify-center"
+            >
+              <FaRegSmile className="text-muted-foreground w-6 h-6" />
+            </button>
           </div>
 
-          {showEmojiPicker && (
-            <div className="absolute bottom-16 right-4 z-50 shadow-xl border border-gray-600 rounded-lg bg-white dark:bg-gray-800 max-h-[300px] overflow-y-auto w-[280px]">
-              <EmojiPicker
-                onEmojiClick={handleEmojiClick}
-                height={300} // optional if your library supports it
-                width={280}
-              />
-            </div>
-          )}
+          {/* Send button */}
+          <button
+            type="button"
+            onClick={handleSendMessage}
+            className="w-8 h-8 flex items-center justify-center"
+          >
+            <IoSendSharp className="text-muted-foreground w-6 h-6" />
+          </button>
         </div>
-        <img
-          onClick={handleSendMessage || handleSendImage}
-          src={assets.send_button}
-          alt=""
-          className="w-7 cursor-pointer"
-        />
+
+        {/* Emoji Picker */}
+        {showEmojiPicker && (
+          <div className="absolute bottom-16 right-4 z-50 rounded-lg border shadow-md bg-popover max-h-[300px] overflow-y-auto w-[280px]">
+            <EmojiPicker
+              onEmojiClick={handleEmojiClick}
+              height={300}
+              width={280}
+            />
+          </div>
+        )}
+      </div>
+      <div>
+        <RightSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       </div>
     </div>
   ) : (
-    <div className="flex flex-col items-center justify-center gap-2 text-grey-500 bg-white/10 max-md:hidden">
+    <div className=" w-full flex flex-col items-center justify-center gap-2 bg-card">
       <img
         onClick={handleSendMessage}
         src={assets.logo_icon}
