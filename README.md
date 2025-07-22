@@ -1,20 +1,37 @@
 # 💬 TalkDesk – Real-time Chat App
 
-A full-stack chat application with real-time messaging, profile customization, and unseen message tracking. Built using the **MERN stack** (MongoDB, Express.js, React, Node.js) and **Socket.IO** for real-time communication.
+A sleek and modern full-stack chat application with real-time messaging, custom profiles, and unseen message tracking. Built using the **MERN stack** (MongoDB, Express.js, React, Node.js), enhanced by **Socket.IO** for real-time communication, and styled with **Tailwind CSS + ShadCN UI**.
 
 ---
 
 ## 🚀 Features
 
-- 🔐 User Authentication (Signup/Login)
-- 💬 Real-time one-to-one messaging
-- 🟢 Online/offline status indicators
-- 📸 Image message support via Cloudinary
-- 📥 Unseen message tracking
-- 🧑‍💼 User profile with name, bio & profile picture update
-- ⚡ Socket.IO-powered instant communication
+- 🔐 **Secure Authentication** – Signup/Login with JWT
+- 💬 **Instant Messaging** – Real-time 1:1 chats using Socket.IO
+- 🟢 **Online Status** – Live user presence indicator
+- 📸 **Media Support** – Upload images via Cloudinary
+- 📥 **Unseen Message Tracking** – Never miss a message
+- 🧑‍💼 **User Profiles** – Update bio, name & avatar
+- 🖼️  Responsive, themed UI with `Heroicons` and `ShadCN`
 
 ---
+
+## 🧠 Tech Stack
+
+| Layer        | Tech                                  |
+|--------------|----------------------------------------|
+| Frontend     | React, Tailwind CSS, ShadCN UI, Heroicons |
+| Backend      | Node.js, Express                      |
+| Database     | MongoDB, Mongoose                     |
+| Real-time    | Socket.IO                             |
+| File Upload  | Cloudinary                            |
+| Auth         | JWT (JSON Web Tokens)                 |
+
+---
+
+## 🏗️ Project Structure
+
+
 
 ## 🏗️ Project Structure
 
