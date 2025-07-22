@@ -12,8 +12,7 @@ A sleek and modern full-stack chat application with real-time messaging, custom 
 - 📸 **Media Support** – Upload images via Cloudinary
 - 📥 **Unseen Message Tracking** – Never miss a message
 - 🧑‍💼 **User Profiles** – Update bio, name & avatar
-- 🖼️ **Avatar & Sidebar UI Revamp** – Responsive, themed UI with `Heroicons` and `ShadCN`
-- 💡 **Light Mode Enhancements** – Contrast-improved for light backgrounds
+- 🖼️  Responsive, themed UI with `Heroicons` and `ShadCN`
 
 ---
 
