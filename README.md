@@ -50,7 +50,7 @@ root/
 
 ---
 
-##Frontend (React)
+## Frontend (React)
 
 ```bash
 cd client
@@ -60,7 +60,7 @@ npm start
 
 ---
 
-##Backend (Node.js + Express)
+## Backend (Node.js + Express)
 
 ```bash
 cd server
@@ -70,7 +70,7 @@ npm run dev
 
 ---
 
-##Environment Variables
+## Environment Variables
 
 Create a `.env` file inside the `server` folder and add the following:
 
@@ -84,7 +84,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 ---
 
-##Scripts
+## Scripts
 
 **Frontend:**
 
@@ -100,7 +100,7 @@ npm run dev         # Start backend with nodemon
 
 ---
 
-##Tech Stack
+## Tech Stack
 
 - **Frontend**: React, Tailwind CSS
 - **Backend**: Node.js, Express
@@ -111,7 +111,7 @@ npm run dev         # Start backend with nodemon
 
 ---
 
-##Future Enhancements
+## Future Enhancements
 
 - Group chat support
 - Push notifications
@@ -121,7 +121,7 @@ npm run dev         # Start backend with nodemon
 
 ---
 
-##License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
 
