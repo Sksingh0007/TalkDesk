@@ -31,10 +31,6 @@ A sleek and modern full-stack chat application with real-time messaging, custom 
 
 ## 🏗️ Project Structure
 
-
-
-## 🏗️ Project Structure
-
 ```
 root/
 ├── client/              # React frontend
