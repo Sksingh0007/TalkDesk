@@ -1,22 +1,22 @@
-# 💬 TalkDesk – Real-time Chat App
+# TalkDesk – Real-time Chat App
 
 A sleek and modern full-stack chat application with real-time messaging, custom profiles, and unseen message tracking. Built using the **MERN stack** (MongoDB, Express.js, React, Node.js), enhanced by **Socket.IO** for real-time communication, and styled with **Tailwind CSS + ShadCN UI**.
 
 ---
 
-## 🚀 Features
+## Features
 
-- 🔐 **Secure Authentication** – Signup/Login with JWT
-- 💬 **Instant Messaging** – Real-time 1:1 chats using Socket.IO
-- 🟢 **Online Status** – Live user presence indicator
-- 📸 **Media Support** – Upload images via Cloudinary
-- 📥 **Unseen Message Tracking** – Never miss a message
-- 🧑‍💼 **User Profiles** – Update bio, name & avatar
-- 🖼️  Responsive, themed UI with `Heroicons` and `ShadCN`
+- **Secure Authentication** – Signup/Login with JWT
+- **Instant Messaging** – Real-time 1:1 chats using Socket.IO
+- **Online Status** – Live user presence indicator
+- **Media Support** – Upload images via Cloudinary
+- **Unseen Message Tracking** – Never miss a message
+- **User Profiles** – Update bio, name & avatar
+- Responsive, themed UI with `Heroicons` and `ShadCN`
 
 ---
 
-## 🧠 Tech Stack
+## Tech Stack
 
 | Layer        | Tech                                  |
 |--------------|----------------------------------------|
@@ -29,7 +29,7 @@ A sleek and modern full-stack chat application with real-time messaging, custom 
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 root/
@@ -50,7 +50,7 @@ root/
 
 ---
 
-## 🌐 Frontend (React)
+##Frontend (React)
 
 ```bash
 cd client
@@ -60,7 +60,7 @@ npm start
 
 ---
 
-## 🧠 Backend (Node.js + Express)
+##Backend (Node.js + Express)
 
 ```bash
 cd server
@@ -70,7 +70,7 @@ npm run dev
 
 ---
 
-## 🔐 Environment Variables
+##Environment Variables
 
 Create a `.env` file inside the `server` folder and add the following:
 
@@ -84,7 +84,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 ---
 
-## ⚙️ Scripts
+##Scripts
 
 **Frontend:**
 
@@ -100,7 +100,7 @@ npm run dev         # Start backend with nodemon
 
 ---
 
-## 🔧 Tech Stack
+##Tech Stack
 
 - **Frontend**: React, Tailwind CSS
 - **Backend**: Node.js, Express
@@ -111,24 +111,23 @@ npm run dev         # Start backend with nodemon
 
 ---
 
-## ✨ Future Enhancements
+##Future Enhancements
 
-- 🧑‍🤝‍🧑 Group chat support
-- 🔔 Push notifications
-- 🗑️ Message deletion/editing
-- 📱 Responsive mobile-first UI
-- 🟢 Active chat list with last message preview
+- Group chat support
+- Push notifications
+- Message deletion/editing
+- Responsive mobile-first UI
+- Active chat list with last message preview
 
 ---
 
-## 📄 License
+##License
 
 This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## 🙋‍♂️ Author
+##Author
 
 **Shivam Kumar Singh**  
-Crafted with ❤️ and caffeine ☕  
-_“Code like a human, deploy like a machine.”_
+Crafted with ❤️ and caffeine 
