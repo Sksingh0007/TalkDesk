@@ -44,9 +44,11 @@ const ChatContainer = () => {
     e.preventDefault();
     if (input.trim() === "") return null;
     
+    // Always use conversation-based messaging for consistency
     if (selectedConversation) {
       await sendConversationMessage({ text: input.trim() });
     } else if (selectedUser) {
+      // This is for backward compatibility - shouldn't happen in new flow
       await sendMessage({ text: input.trim() });
     }
     
@@ -66,9 +68,11 @@ const ChatContainer = () => {
 
     reader.onloadend = async (e) => {
       if (!e.target.result) return;
+      // Always use conversation-based messaging for consistency
       if (selectedConversation) {
         await sendConversationMessage({ image: reader.result });
       } else if (selectedUser) {
+        // This is for backward compatibility - shouldn't happen in new flow
         await sendMessage({ image: reader.result });
       }
       inputElement.value = "";
@@ -77,10 +81,12 @@ const ChatContainer = () => {
   };
 
   useEffect(() => {
-    if (selectedUser) {
-      getMessages(selectedUser._id);
-    } else if (selectedConversation) {
+    // Always prioritize conversation-based messaging
+    if (selectedConversation) {
       getConversationMessages(selectedConversation._id);
+    } else if (selectedUser) {
+      // Backward compatibility - but this shouldn't happen in new flow
+      getMessages(selectedUser._id);
     }
   }, [selectedUser, selectedConversation]);
 
@@ -90,9 +96,20 @@ const ChatContainer = () => {
     }
   }, [messages]);
 
-  const currentChat = selectedUser || selectedConversation;
-  const chatName = selectedUser ? selectedUser.fullName : (selectedConversation?.groupName || "Group Chat");
-  const isOnline = selectedUser ? onlineUsers.includes(selectedUser._id) : false;
+  const currentChat = selectedConversation || selectedUser;
+  const chatName = selectedConversation 
+    ? (selectedConversation.isGroup 
+        ? selectedConversation.groupName 
+        : selectedConversation.participants?.find(p => p._id !== authUser._id)?.fullName || "Chat"
+      )
+    : selectedUser?.fullName || "Chat";
+  
+  const isOnline = selectedConversation 
+    ? (selectedConversation.isGroup 
+        ? selectedConversation.participants?.some(p => p._id !== authUser._id && onlineUsers.includes(p._id))
+        : selectedConversation.participants?.some(p => p._id !== authUser._id && onlineUsers.includes(p._id))
+      )
+    : selectedUser ? onlineUsers.includes(selectedUser._id) : false;
 
   return currentChat ? (
     <div className="flex h-full w-full relative bg-card ">
@@ -100,7 +117,14 @@ const ChatContainer = () => {
       <div className="flex flex-col w-full h-full">
         <div className="flex items-center gap-3 px-4 py-3 border-b">
           <img
-            src={selectedUser ? (selectedUser.profilePic || assets.avatar_icon) : (selectedConversation?.groupImage || assets.group_icon || assets.avatar_icon)}
+            src={
+              selectedConversation 
+                ? (selectedConversation.isGroup 
+                    ? (selectedConversation.groupImage || assets.group_icon || assets.avatar_icon)
+                    : (selectedConversation.participants?.find(p => p._id !== authUser._id)?.profilePic || assets.avatar_icon)
+                  )
+                : (selectedUser?.profilePic || assets.avatar_icon)
+            }
             alt="chat-img"
             className="w-8 h-8 rounded-full object-cover"
           />

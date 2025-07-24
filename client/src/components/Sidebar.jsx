@@ -42,7 +42,7 @@ const Sidebar = () => {
     setUnseenMessages,
   } = useContext(ChatContext);
 
-  const { logout, onlineUsers, authUser } = useContext(AuthContext);
+  const { logout, onlineUsers, authUser, axios } = useContext(AuthContext);
 
   const [input, setInput] = useState("");
   const [activeTab, setActiveTab] = useState("conversations");
@@ -87,10 +87,26 @@ const Sidebar = () => {
     }
   }, [onlineUsers, activeTab]);
 
-  const handleUserSelect = (user) => {
-    setSelectedUser(user);
+  const handleUserSelect = async (user) => {
+    // Clear previous selections
+    setSelectedUser(null);
     setSelectedConversation(null);
-    setUnseenMessages((prev) => ({ ...prev, [user._id]: 0 }));
+    
+    try {
+      // Check if conversation exists or create one
+      const { data } = await axios.post('/api/conversations/access', { userId: user._id });
+      if (data.conversation) {
+        setSelectedConversation(data.conversation);
+        setUnseenMessages((prev) => ({ ...prev, [user._id]: 0 }));
+        
+        // Refresh conversations to update sidebar
+        getConversations();
+      }
+    } catch (error) {
+      // Fallback to direct user selection (backward compatibility)
+      setSelectedUser(user);
+      setUnseenMessages((prev) => ({ ...prev, [user._id]: 0 }));
+    }
   };
 
   const handleConversationSelect = (conversation) => {
@@ -223,7 +239,7 @@ const Sidebar = () => {
         <TabsContent value="conversations" className="flex-1 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-2">
             <h3 className="text-sm font-medium text-muted-foreground">
-              Recent Conversations
+              Your Conversations
             </h3>
             <Button
               variant="ghost"
@@ -254,38 +270,46 @@ const Sidebar = () => {
                     <div className="relative">
                       <Avatar className="h-10 w-10 border">
                         <AvatarImage src={getConversationAvatar(conversation)} />
-                        <AvatarFallback>
-                          {conversation.isGroup ? (
-                            <UsersIcon className="h-5 w-5" />
-                          ) : (
-                            getConversationName(conversation)
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                          )}
-                        </AvatarFallback>
+                                                 <AvatarFallback className={conversation.isGroup ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}>
+                           {conversation.isGroup ? (
+                             <UsersIcon className="h-5 w-5" />
+                           ) : (
+                             getConversationName(conversation)
+                               .split(" ")
+                               .map((n) => n[0])
+                               .join("")
+                           )}
+                         </AvatarFallback>
                       </Avatar>
                       {isOnline && (
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium truncate">
-                          {getConversationName(conversation)}
-                        </p>
-                        {unseenCount > 0 && (
-                          <Badge variant="destructive" className="h-5 w-5 text-xs p-0 flex items-center justify-center">
-                            {unseenCount > 99 ? "99+" : unseenCount}
-                          </Badge>
-                        )}
-                      </div>
-                      {conversation.isGroup && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {conversation.participants.length} members
-                        </p>
-                      )}
-                    </div>
+                                         <div className="flex-1 min-w-0">
+                       <div className="flex items-center justify-between">
+                         <div className="flex items-center space-x-2">
+                           <p className="text-sm font-medium truncate">
+                             {getConversationName(conversation)}
+                           </p>
+                           {conversation.isGroup && (
+                             <Badge variant="outline" className="text-xs px-1 py-0">
+                               Group
+                             </Badge>
+                           )}
+                         </div>
+                         {unseenCount > 0 && (
+                           <Badge variant="destructive" className="h-5 w-5 text-xs p-0 flex items-center justify-center">
+                             {unseenCount > 99 ? "99+" : unseenCount}
+                           </Badge>
+                         )}
+                       </div>
+                       <p className="text-xs text-muted-foreground truncate">
+                         {conversation.isGroup 
+                           ? `${conversation.participants.length} members`
+                           : isOnline ? "Online" : "Offline"
+                         }
+                       </p>
+                     </div>
                   </div>
                 );
               })
@@ -308,8 +332,11 @@ const Sidebar = () => {
         <TabsContent value="users" className="flex-1 overflow-hidden">
           <div className="px-4 py-2">
             <h3 className="text-sm font-medium text-muted-foreground">
-              Available Users
+              Start New Chat
             </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Users you haven't chatted with yet
+            </p>
           </div>
           <div className="flex-1 overflow-y-auto">
             {filteredUsers.length > 0 ? (

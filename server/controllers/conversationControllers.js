@@ -248,9 +248,10 @@ export const accessChat = async (req, res) => {
   const { userId } = req.body;
 
   if (!userId) {
-    return res
-      .status(400)
-      .json({ message: "UserId param not sent with request" });
+    return res.status(400).json({ 
+      success: false,
+      message: "UserId param not sent with request" 
+    });
   }
 
   try {
@@ -262,20 +263,30 @@ export const accessChat = async (req, res) => {
       .populate("lastMessage");
 
     if (conversation) {
-      return res.status(200).json({ conversation });
+      return res.status(200).json({ 
+        success: true,
+        conversation 
+      });
     }
 
+    // Create new conversation
     conversation = await Conversation.create({
       isGroup: false,
       participants: [req.user._id, userId],
     });
 
-    const fullConversation = await conversation
-      .populate("participants", "-password")
-      .execPopulate();
+    // Populate the conversation
+    const fullConversation = await Conversation.findById(conversation._id)
+      .populate("participants", "-password");
 
-    res.status(201).json({ conversation: fullConversation });
+    res.status(201).json({ 
+      success: true,
+      conversation: fullConversation 
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 };
