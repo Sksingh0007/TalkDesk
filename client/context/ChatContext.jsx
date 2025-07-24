@@ -125,6 +125,51 @@ export const ChatProvider = ({ children }) => {
         }
     }
 
+    //Function to update group info
+    const updateGroupInfo = async (conversationId, updateData) => {
+        try {
+            const { data } = await axios.put(`/api/conversations/${conversationId}`, updateData);
+            if (data.success) {
+                getConversations(); // Refresh conversations
+                return data.conversation;
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message);
+        }
+    }
+
+    //Function to add group member
+    const addGroupMember = async (conversationId, userId) => {
+        try {
+            const { data } = await axios.post(`/api/conversations/${conversationId}/add-member`, { userId });
+            if (data.success) {
+                getConversations(); // Refresh conversations
+                return data.conversation;
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message);
+        }
+    }
+
+    //Function to remove group member
+    const removeGroupMember = async (conversationId, userId) => {
+        try {
+            const { data } = await axios.post(`/api/conversations/${conversationId}/remove-member`, { userId });
+            if (data.success) {
+                getConversations(); // Refresh conversations
+                return data.conversation;
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message);
+        }
+    }
+
     //Function to subscribe to messages for selected user
     const subscribeToMessages = async () => {
       if (!socket) return;
@@ -194,6 +239,9 @@ export const ChatProvider = ({ children }) => {
         sendMessage,
         sendConversationMessage,
         createGroupChat,
+        updateGroupInfo,
+        addGroupMember,
+        removeGroupMember,
         setSelectedUser,
         setSelectedConversation,
         setUnseenMessages

@@ -11,6 +11,7 @@ import { Input } from "./ui/input";
 import { IoSendSharp } from "react-icons/io5";
 import { Button } from "./ui/button";
 import RightSidebar from "./RightSidebar";
+import GroupInfoPanel from "./GroupInfoPanel";
 
 const ChatContainer = () => {
   const { 
@@ -31,6 +32,7 @@ const ChatContainer = () => {
   const [input, setInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
 
   //Handle emoji click function
   const handleEmojiClick = (emojiData) => {
@@ -122,6 +124,15 @@ const ChatContainer = () => {
             alt="back"
             className="md:hidden w-6 h-6 cursor-pointer"
           />
+          {selectedConversation?.isGroup && (
+            <Button
+              variant="outline"
+              className="rounded-xs cursor-pointer"
+              onClick={() => setShowGroupInfo(!showGroupInfo)}
+            >
+              Group Info
+            </Button>
+          )}
           <Button
             variant="outline"
             className="rounded-xs cursor-pointer"
@@ -134,9 +145,11 @@ const ChatContainer = () => {
         {/* Chat Area */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-6">
           {messages?.map((msg, index) => {
-            const isSelf = msg.senderId === authUser._id;
+            const senderId = typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId;
+            const isSelf = senderId === authUser._id;
             const nextMsg = messages[index + 1];
-            const isLastInGroup = !nextMsg || nextMsg.senderId !== msg.senderId;
+            const nextSenderId = typeof nextMsg?.senderId === 'object' ? nextMsg?.senderId._id : nextMsg?.senderId;
+            const isLastInGroup = !nextMsg || nextSenderId !== senderId;
 
             return (
               <div
@@ -260,6 +273,12 @@ const ChatContainer = () => {
       </div>
       <div>
         <RightSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+        {showGroupInfo && selectedConversation?.isGroup && (
+          <GroupInfoPanel 
+            conversation={selectedConversation} 
+            onClose={() => setShowGroupInfo(false)} 
+          />
+        )}
       </div>
     </div>
   ) : (

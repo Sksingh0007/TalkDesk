@@ -48,11 +48,22 @@ const Sidebar = () => {
   const [activeTab, setActiveTab] = useState("conversations");
   const navigate = useNavigate();
 
+  // Get users that don't have existing conversations
+  const usersWithConversations = conversations
+    .filter(conv => !conv.isGroup)
+    .flatMap(conv => conv.participants)
+    .map(user => user._id.toString())
+    .filter(id => id !== authUser._id);
+
+  const availableUsers = users.filter(user => 
+    !usersWithConversations.includes(user._id.toString())
+  );
+
   const filteredUsers = input
-    ? users.filter((user) =>
+    ? availableUsers.filter((user) =>
         user.fullName.toLowerCase().includes(input.toLowerCase())
       )
-    : users;
+    : availableUsers;
 
   const filteredConversations = input
     ? conversations.filter((conversation) => {
