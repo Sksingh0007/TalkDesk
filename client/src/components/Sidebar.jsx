@@ -15,21 +15,29 @@ import { Input } from "@/components/ui/input";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { AvatarImage } from "@radix-ui/react-avatar";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
   SparklesIcon,
   UserIcon,
   ArrowRightOnRectangleIcon,
   MagnifyingGlassIcon,
+  UsersIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
 import { Settings } from "lucide-react";
 
 const Sidebar = () => {
   const {
     getUsers,
+    getConversations,
     users,
+    conversations,
     selectedUser,
+    selectedConversation,
     setSelectedUser,
+    setSelectedConversation,
     unseenMessages,
     setUnseenMessages,
   } = useContext(ChatContext);
@@ -37,6 +45,7 @@ const Sidebar = () => {
   const { logout, onlineUsers, authUser } = useContext(AuthContext);
 
   const [input, setInput] = useState("");
+  const [activeTab, setActiveTab] = useState("conversations");
   const navigate = useNavigate();
 
   const filteredUsers = input
@@ -45,152 +54,311 @@ const Sidebar = () => {
       )
     : users;
 
+  const filteredConversations = input
+    ? conversations.filter((conversation) => {
+        if (conversation.isGroup) {
+          return conversation.groupName?.toLowerCase().includes(input.toLowerCase());
+        } else {
+          // For individual conversations, search by participant name
+          const otherParticipant = conversation.participants.find(
+            p => p._id !== authUser._id
+          );
+          return otherParticipant?.fullName.toLowerCase().includes(input.toLowerCase());
+        }
+      })
+    : conversations;
+
   useEffect(() => {
-    getUsers();
-  }, [onlineUsers]);
+    if (activeTab === "conversations") {
+      getConversations();
+    } else {
+      getUsers();
+    }
+  }, [onlineUsers, activeTab]);
+
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    setSelectedConversation(null);
+    setUnseenMessages((prev) => ({ ...prev, [user._id]: 0 }));
+  };
+
+  const handleConversationSelect = (conversation) => {
+    setSelectedConversation(conversation);
+    setSelectedUser(null);
+    
+    if (conversation.isGroup) {
+      setUnseenMessages((prev) => ({ ...prev, [conversation._id]: 0 }));
+    } else {
+      const otherParticipant = conversation.participants.find(
+        p => p._id !== authUser._id
+      );
+      if (otherParticipant) {
+        setUnseenMessages((prev) => ({ ...prev, [otherParticipant._id]: 0 }));
+      }
+    }
+  };
+
+  const getConversationName = (conversation) => {
+    if (conversation.isGroup) {
+      return conversation.groupName || "Group Chat";
+    } else {
+      const otherParticipant = conversation.participants.find(
+        p => p._id !== authUser._id
+      );
+      return otherParticipant?.fullName || "Unknown User";
+    }
+  };
+
+  const getConversationAvatar = (conversation) => {
+    if (conversation.isGroup) {
+      return conversation.groupImage || assets.group_icon || assets.avatar_icon;
+    } else {
+      const otherParticipant = conversation.participants.find(
+        p => p._id !== authUser._id
+      );
+      return otherParticipant?.profilePic || assets.avatar_icon;
+    }
+  };
+
+  const getUnseenCount = (conversation) => {
+    if (conversation.isGroup) {
+      return unseenMessages[conversation._id] || 0;
+    } else {
+      const otherParticipant = conversation.participants.find(
+        p => p._id !== authUser._id
+      );
+      return otherParticipant ? unseenMessages[otherParticipant._id] || 0 : 0;
+    }
+  };
+
+  const isUserOnline = (userId) => {
+    return onlineUsers.includes(userId);
+  };
+
+  const isConversationOnline = (conversation) => {
+    if (conversation.isGroup) {
+      // For groups, check if any participant is online
+      return conversation.participants.some(p => 
+        p._id !== authUser._id && isUserOnline(p._id)
+      );
+    } else {
+      const otherParticipant = conversation.participants.find(
+        p => p._id !== authUser._id
+      );
+      return otherParticipant ? isUserOnline(otherParticipant._id) : false;
+    }
+  };
 
   return (
-    <aside className="h-full w-72 bg-background p-2 flex flex-col">
-      {/* Top Section */}
-      <div className="pb-4 space-y-4">
+    <div className="w-80 bg-card border-r border-border flex flex-col">
+      {/* Header */}
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <SparklesIcon className="w-6 h-6 text-primary" />
+            <h1 className="text-xl font-bold">TalkDesk</h1>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <UserIcon className="w-4 h-4 mr-2" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/create-group")}>
+                <UsersIcon className="w-4 h-4 mr-2" />
+                Create Group
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
+                <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         {/* Search */}
-        <div className="flex items-center justify-between">
-          <div className="relative w-full">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <Input
-              type="text"
-              placeholder="Search user..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="pl-10 w-full"
-            />
-          </div>
+        <div className="relative">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="Search conversations..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="pl-10"
+          />
         </div>
-
-        <hr />
-
-        {/* Friend / Group Buttons */}
-        <div className="flex flex-col gap-2 w-full">
-          <Button
-            variant="outline"
-            className="justify-start w-full rounded-xs cursor-pointer"
-          >
-            Friend
-          </Button>
-          <Button
-            variant="outline"
-            className="justify-start w-full rounded-xs cursor-pointer"
-          >
-            Group
-          </Button>
-        </div>
-
-        <hr />
       </div>
 
-      {/* User List */}
-      <div className="flex-1 overflow-y-auto flex flex-col gap-2">
-        {filteredUsers.map((user) => {
-          const isSelected = selectedUser?._id === user._id;
-          const hasUnseen = unseenMessages[user._id] > 0;
-          const isOnline = onlineUsers.includes(user._id);
-
-          return (
-            <Button
-              key={user._id}
-              variant={isSelected ? "selected" : "outline"}
-              onClick={() => {
-                setUnseenMessages((prev) => ({ ...prev, [user._id]: 0 }));
-                setSelectedUser(user);
-              }}
-              className="w-full justify-start gap-3 rounded-xs px-4 py-2 h-fit cursor-pointer"
-            >
-              {/* Avatar */}
-              <div className="relative cursor-pointer">
-                <Avatar className="h-10 w-10 border cursor-pointer">
-                  <AvatarImage src={user?.profilePic || assets.avatar_icon} />
-                  <AvatarFallback>
-                    {user.fullName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <span
-                  className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-background ${
-                    isOnline ? "bg-green-500" : "bg-gray-400"
-                  }`}
-                />
-              </div>
-
-              {/* Name */}
-              <div className="flex flex-1 flex-col items-start justify-center">
-                <p className="text-sm font-medium">{user.fullName}</p>
-              </div>
-
-              {/* Unread badge */}
-              {hasUnseen && (
-                <div className="min-w-5 h-5 px-1 text-[10px] rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                  {unseenMessages[user._id]}
-                </div>
-              )}
-            </Button>
-          );
-        })}
-      </div>
-
-      {/* Current User Info + Dropdown */}
-      <div className="rounded-xs mt-2 p-2 bg-foreground/20 border-2 flex items-center justify-between px-2">
-        <div className="flex items-center gap-2 cursor-pointer">
-          <Avatar className="border w-10 h-10 cursor-pointer">
-            <AvatarImage
-              className="rounded-full object-cover"
-              src={authUser?.profilePic || assets.avatar_icon}
-            />
-            <AvatarFallback>
-              {authUser?.fullName
-                ?.split(" ")
-                .map((n) => n[0])
-                .join("") || "U"}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <p className="text-md font-medium leading-none capitalize">
-              {authUser?.fullName}
-            </p>
-          </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+        <div className="px-4 pt-2">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="conversations" className="flex items-center gap-2">
+              <UsersIcon className="w-4 h-4" />
+              Chats
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <UserIcon className="w-4 h-4" />
+              Users
+            </TabsTrigger>
+          </TabsList>
         </div>
 
-        {/* Settings dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        <TabsContent value="conversations" className="flex-1 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Recent Conversations
+            </h3>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 cursor-pointer"
+              className="h-8 w-8"
+              onClick={() => navigate("/create-group")}
             >
-              <Settings className="w-8 h-8" />
+              <PlusIcon className="h-4 w-4" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem
-              onClick={() => navigate("/profile")}
-              className="cursor-pointer"
-            >
-              <UserIcon className="w-4 h-4 mr-2 text-muted-foreground" />
-              Edit Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={logout}
-              className="text-destructive focus:bg-destructive/10 cursor-pointer"
-            >
-              <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </aside>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {filteredConversations.length > 0 ? (
+              filteredConversations.map((conversation) => {
+                const unseenCount = getUnseenCount(conversation);
+                const isSelected = selectedConversation?._id === conversation._id;
+                const isOnline = isConversationOnline(conversation);
+
+                return (
+                  <div
+                    key={conversation._id}
+                    onClick={() => handleConversationSelect(conversation)}
+                    className={`flex items-center gap-3 p-3 mx-2 rounded-lg cursor-pointer transition-colors ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-accent"
+                    }`}
+                  >
+                    <div className="relative">
+                      <Avatar className="h-10 w-10 border">
+                        <AvatarImage src={getConversationAvatar(conversation)} />
+                        <AvatarFallback>
+                          {conversation.isGroup ? (
+                            <UsersIcon className="h-5 w-5" />
+                          ) : (
+                            getConversationName(conversation)
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                          )}
+                        </AvatarFallback>
+                      </Avatar>
+                      {isOnline && (
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium truncate">
+                          {getConversationName(conversation)}
+                        </p>
+                        {unseenCount > 0 && (
+                          <Badge variant="destructive" className="h-5 w-5 text-xs p-0 flex items-center justify-center">
+                            {unseenCount > 99 ? "99+" : unseenCount}
+                          </Badge>
+                        )}
+                      </div>
+                      {conversation.isGroup && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {conversation.participants.length} members
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+                <UsersIcon className="h-8 w-8 mb-2" />
+                <p className="text-sm">No conversations yet</p>
+                <Button
+                  variant="link"
+                  className="text-xs"
+                  onClick={() => navigate("/create-group")}
+                >
+                  Create a group
+                </Button>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="users" className="flex-1 overflow-hidden">
+          <div className="px-4 py-2">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Available Users
+            </h3>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => {
+                const unseenCount = unseenMessages[user._id] || 0;
+                const isSelected = selectedUser?._id === user._id;
+                const isOnline = isUserOnline(user._id);
+
+                return (
+                  <div
+                    key={user._id}
+                    onClick={() => handleUserSelect(user)}
+                    className={`flex items-center gap-3 p-3 mx-2 rounded-lg cursor-pointer transition-colors ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-accent"
+                    }`}
+                  >
+                    <div className="relative">
+                      <Avatar className="h-10 w-10 border">
+                        <AvatarImage src={user?.profilePic || assets.avatar_icon} />
+                        <AvatarFallback>
+                          {user.fullName
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      {isOnline && (
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium truncate">
+                          {user.fullName}
+                        </p>
+                        {unseenCount > 0 && (
+                          <Badge variant="destructive" className="h-5 w-5 text-xs p-0 flex items-center justify-center">
+                            {unseenCount > 99 ? "99+" : unseenCount}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {isOnline ? "Online" : "Offline"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+                <UserIcon className="h-8 w-8 mb-2" />
+                <p className="text-sm">No users found</p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

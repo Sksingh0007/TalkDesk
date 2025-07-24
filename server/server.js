@@ -5,6 +5,7 @@ import http from "http";
 import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
+import conversationRouter from "./routes/conversationRoutes.js";
 import { Server } from "socket.io";
 import { log } from "console";
 
@@ -56,6 +57,7 @@ app.use(express.json({ limit: "4mb" }));
 app.use("/api/status", (req, res) => res.send("Server is live"))
 app.use("/api/auth", userRouter)
 app.use('/api/messages', messageRouter);
+app.use('/api/conversations', conversationRouter);
 
 //connext to mongoDB
 await connectDB();
