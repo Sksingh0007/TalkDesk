@@ -12,7 +12,7 @@ import {
   PencilIcon, 
   UserPlusIcon, 
   UserMinusIcon,
-  CrownIcon,
+  ShieldCheckIcon,
   XMarkIcon
 } from "@heroicons/react/24/outline";
 import assets from "../assets/assets";
@@ -239,12 +239,12 @@ const GroupInfoPanel = ({ conversation, onClose }) => {
                           {member.fullName}
                           {isCurrentUser && " (You)"}
                         </p>
-                        {isMemberAdmin && (
-                          <Badge variant="secondary" className="text-xs">
-                            <CrownIcon className="h-3 w-3 mr-1" />
-                            Admin
-                          </Badge>
-                        )}
+                                                 {isMemberAdmin && (
+                           <Badge variant="secondary" className="text-xs">
+                             <ShieldCheckIcon className="h-3 w-3 mr-1" />
+                             Admin
+                           </Badge>
+                         )}
                       </div>
                       <p className="text-xs text-muted-foreground">{member.email}</p>
                     </div>
@@ -274,7 +274,7 @@ const GroupInfoPanel = ({ conversation, onClose }) => {
         <div className="space-y-2">
           {isAdmin ? (
             <Badge variant="default" className="w-full justify-center">
-              <CrownIcon className="h-4 w-4 mr-2" />
+              <ShieldCheckIcon className="h-4 w-4 mr-2" />
               You are an admin
             </Badge>
           ) : (
