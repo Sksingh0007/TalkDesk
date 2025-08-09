@@ -11,10 +11,20 @@ import { Input } from "./ui/input";
 import { IoSendSharp } from "react-icons/io5";
 import { Button } from "./ui/button";
 import RightSidebar from "./RightSidebar";
+import GroupInfoPanel from "./GroupInfoPanel";
 
 const ChatContainer = () => {
-  const { messages, selectedUser, setSelectedUser, sendMessage, getMessages } =
-    useContext(ChatContext);
+  const { 
+    messages, 
+    selectedUser, 
+    selectedConversation, 
+    setSelectedUser, 
+    setSelectedConversation,
+    sendMessage, 
+    sendConversationMessage,
+    getMessages,
+    getConversationMessages 
+  } = useContext(ChatContext);
   const { authUser, onlineUsers } = useContext(AuthContext);
 
   const scrollEnd = useRef();
@@ -22,6 +32,7 @@ const ChatContainer = () => {
   const [input, setInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
 
   //Handle emoji click function
   const handleEmojiClick = (emojiData) => {
@@ -32,7 +43,13 @@ const ChatContainer = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (input.trim() === "") return null;
-    await sendMessage({ text: input.trim() });
+    
+    if (selectedConversation) {
+      await sendConversationMessage({ text: input.trim() });
+    } else if (selectedUser) {
+      await sendMessage({ text: input.trim() });
+    }
+    
     setInput("");
   };
 
@@ -49,7 +66,11 @@ const ChatContainer = () => {
 
     reader.onloadend = async (e) => {
       if (!e.target.result) return;
-      await sendMessage({ image: reader.result });
+      if (selectedConversation) {
+        await sendConversationMessage({ image: reader.result });
+      } else if (selectedUser) {
+        await sendMessage({ image: reader.result });
+      }
       inputElement.value = "";
     };
     reader.readAsDataURL(file);
@@ -58,8 +79,10 @@ const ChatContainer = () => {
   useEffect(() => {
     if (selectedUser) {
       getMessages(selectedUser._id);
+    } else if (selectedConversation) {
+      getConversationMessages(selectedConversation._id);
     }
-  }, [selectedUser]);
+  }, [selectedUser, selectedConversation]);
 
   useEffect(() => {
     if (scrollEnd.current && messages) {
@@ -67,28 +90,49 @@ const ChatContainer = () => {
     }
   }, [messages]);
 
-  return selectedUser ? (
+  const currentChat = selectedUser || selectedConversation;
+  const chatName = selectedUser ? selectedUser.fullName : (selectedConversation?.groupName || "Group Chat");
+  const isOnline = selectedUser ? onlineUsers.includes(selectedUser._id) : false;
+
+  return currentChat ? (
     <div className="flex h-full w-full relative bg-card ">
       {/* Header */}
       <div className="flex flex-col w-full h-full">
         <div className="flex items-center gap-3 px-4 py-3 border-b">
           <img
-            src={selectedUser.profilePic || assets.avatar_icon}
-            alt="user-img"
+            src={selectedUser ? (selectedUser.profilePic || assets.avatar_icon) : (selectedConversation?.groupImage || assets.group_icon || assets.avatar_icon)}
+            alt="chat-img"
             className="w-8 h-8 rounded-full object-cover"
           />
           <p className="flex-1 text-sm font-medium flex items-center gap-2">
-            {selectedUser.fullName}
-            {onlineUsers.includes(selectedUser._id) && (
+            {chatName}
+            {selectedConversation && selectedConversation.isGroup && (
+              <span className="text-xs text-muted-foreground">
+                {selectedConversation.participants?.length} members
+              </span>
+            )}
+            {isOnline && (
               <span className="w-2 h-2 rounded-full bg-green-500" />
             )}
           </p>
           <img
-            onClick={() => setSelectedUser(null)}
+            onClick={() => {
+              setSelectedUser(null);
+              setSelectedConversation(null);
+            }}
             src={assets.arrow_icon}
             alt="back"
             className="md:hidden w-6 h-6 cursor-pointer"
           />
+          {selectedConversation?.isGroup && (
+            <Button
+              variant="outline"
+              className="rounded-xs cursor-pointer"
+              onClick={() => setShowGroupInfo(!showGroupInfo)}
+            >
+              Group Info
+            </Button>
+          )}
           <Button
             variant="outline"
             className="rounded-xs cursor-pointer"
@@ -101,9 +145,11 @@ const ChatContainer = () => {
         {/* Chat Area */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-6">
           {messages?.map((msg, index) => {
-            const isSelf = msg.senderId === authUser._id;
+            const senderId = typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId;
+            const isSelf = senderId === authUser._id;
             const nextMsg = messages[index + 1];
-            const isLastInGroup = !nextMsg || nextMsg.senderId !== msg.senderId;
+            const nextSenderId = typeof nextMsg?.senderId === 'object' ? nextMsg?.senderId._id : nextMsg?.senderId;
+            const isLastInGroup = !nextMsg || nextSenderId !== senderId;
 
             return (
               <div
@@ -118,7 +164,11 @@ const ChatContainer = () => {
                     {isLastInGroup ? (
                       <Avatar>
                         <AvatarImage
-                          src={selectedUser?.profilePic || assets.avatar_icon}
+                          src={
+                            selectedConversation?.isGroup 
+                              ? msg.senderId?.profilePic || assets.avatar_icon
+                              : selectedUser?.profilePic || assets.avatar_icon
+                          }
                           alt=""
                           className="w-10 h-10 rounded-full object-cover"
                         />
@@ -131,10 +181,17 @@ const ChatContainer = () => {
 
                 {/* Message bubble */}
                 <div
-                  className={`relative flex gap-1 px-3 py-2 pr-15 text-sm rounded-lg max-w-[60%] break-words ${
+                  className={`relative flex flex-col gap-1 px-3 py-2 pr-15 text-sm rounded-lg max-w-[60%] break-words ${
                     isSelf ? "bg-primary text-white" : "bg-gray-300 text-black"
                   } ${isSelf ? "rounded-br-none" : "rounded-bl-none"}`}
                 >
+                  {/* Show sender name for group messages */}
+                  {selectedConversation?.isGroup && !isSelf && (
+                    <p className="text-xs font-medium text-blue-600 mb-1">
+                      {msg.senderId?.fullName || "Unknown User"}
+                    </p>
+                  )}
+                  
                   {msg.image ? (
                     <img
                       src={msg.image}
@@ -216,6 +273,12 @@ const ChatContainer = () => {
       </div>
       <div>
         <RightSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+        {showGroupInfo && selectedConversation?.isGroup && (
+          <GroupInfoPanel 
+            conversation={selectedConversation} 
+            onClose={() => setShowGroupInfo(false)} 
+          />
+        )}
       </div>
     </div>
   ) : (

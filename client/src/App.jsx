@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
+import CreateGroupPage from "./pages/CreateGroupPage";
 import { Toaster } from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -27,6 +28,10 @@ const App = () => {
           <Route
             path="/profile"
             element={authUser ? <ProfilePage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/create-group"
+            element={authUser ? <CreateGroupPage /> : <Navigate to="/login" />}
           />
         </Routes>
       </div>
