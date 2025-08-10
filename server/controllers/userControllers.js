@@ -8,18 +8,19 @@ import bcrypt from "bcryptjs";
 export const signup = async (req, res) => {
   try {
     //getting data from re.body
-    const { email, fullName, password, bio } = req.body;
+    const { email, fullName, password, bio, username, backgroundImage } =
+      req.body;
     // Validating data
-    if (!email || !fullName || !password || !bio) {
+    if (!email || !fullName || !password || !bio || !username) {
       return res.status(400).json({
         message: "Please fill all the required fields",
       });
     }
     //check if the user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
       return res.status(400).json({
-        message: "User with this email alrady exists",
+        message: "User with this email or username already exists",
       });
     }
 
@@ -33,6 +34,8 @@ export const signup = async (req, res) => {
       fullName,
       password: hashedPassword,
       bio,
+      username,
+      backgroundImage: backgroundImage || "",
     });
     //Generating JWT token
     const token = generateToken(user._id);
@@ -46,7 +49,7 @@ export const signup = async (req, res) => {
       message: "User Account created successfully",
     });
   } catch (error) {
-      console.log(error)
+    console.log(error);
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -58,40 +61,40 @@ export const signup = async (req, res) => {
 //Controller to Login a user
 
 export const login = async (req, res) => {
-    try {
-      //getting data from re.body
-      const { email, password } = req.body;
-      //Validating data
-      if (!email || !password) {
-        return res.status(400).json({
-          message: "Please fill all the required fields",
-        });
-      }
-      //Check if the user exists
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(400).json({
-          message: "User with this email does not exists",
-        });
-      }
-      //Check if the password is correct
-      const isPasswordCorrect = await bcrypt.compare(password, user.password);
-      if (!isPasswordCorrect) {
-        return res.status(400).json({
-          message: "Incorrect password",
-        });
-      }
-      //Gennerating JWT token
-      const token = generateToken(user._id);
-      //Sending response
-      user.password = undefined;
-      res.status(200).json({
-        success: true,
-        userData: user,
-        token,
-        message: "User logged in successfully",
+  try {
+    //getting data from re.body
+    const { email, password } = req.body;
+    //Validating data
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Please fill all the required fields",
       });
-    } catch (error) {
+    }
+    //Check if the user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message: "User with this email does not exists",
+      });
+    }
+    //Check if the password is correct
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(400).json({
+        message: "Incorrect password",
+      });
+    }
+    //Gennerating JWT token
+    const token = generateToken(user._id);
+    //Sending response
+    user.password = undefined;
+    res.status(200).json({
+      success: true,
+      userData: user,
+      token,
+      message: "User logged in successfully",
+    });
+  } catch (error) {
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -100,37 +103,46 @@ export const login = async (req, res) => {
   }
 };
 
-
 //Controller to check if user is authenticated i.e. if he can log in
 
 export const checkAuth = (req, res) => {
-    res.status(200).json({success: true, user :req.user,message:"User is authenticated"})
-}
+  res
+    .status(200)
+    .json({ success: true, user: req.user, message: "User is authenticated" });
+};
 
 //Controllers to update user profile details
 
 export const updateProfile = async (req, res) => {
-    try {
-        const { profilePic, bio, fullName } = req.body;
+  try {
+    const { profilePic, bio, fullName, username, backgroundImage } = req.body;
+    const userId = req.user._id;
+    let updateFields = { bio, fullName };
+    if (username) updateFields.username = username;
 
-        //It will be protected by route so req.body will contain user info as passed by middleware
-        const userId = req.user._id;
-        let updatedUser;
-        if (!profilePic) {
-            updatedUser = await User.findByIdAndUpdate(userId, {bio,fullName},{new:true})
-        }
-        else {
-            const upload = await cloudinary.uploader.upload(profilePic)
-
-            updatedUser = await User.findByIdAndUpdate(userId, { profilePic: upload.secure_url, bio, fullName }, { new: true })
-            
-        }
-        //Sending response
-        res.status(201).json({success: true, user: updatedUser})
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        })
+    if (profilePic) {
+      const upload = await cloudinary.uploader.upload(profilePic);
+      updateFields.profilePic = upload.secure_url;
     }
-}
+
+    if (backgroundImage) {
+      // Only upload if it's a data URL (not already a URL)
+      if (backgroundImage.startsWith("data:")) {
+        const bgUpload = await cloudinary.uploader.upload(backgroundImage);
+        updateFields.backgroundImage = bgUpload.secure_url;
+      } else {
+        updateFields.backgroundImage = backgroundImage;
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
+      new: true,
+    });
+    res.status(201).json({ success: true, user: updatedUser });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

@@ -5,7 +5,7 @@ import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
-import { FaPlus, FaRegSmile } from "react-icons/fa";
+import { FaPlus, FaRegSmile, FaCheck, FaCheckDouble } from "react-icons/fa";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Input } from "./ui/input";
 import { IoSendSharp } from "react-icons/io5";
@@ -145,10 +145,19 @@ const ChatContainer = () => {
                     <span>{msg.text}</span>
                   )}
 
-                  {/* Time positioned at the bottom right of the bubble */}
-                  <p className="absolute bottom-1 right-2 text-[10px] text-muted">
-                    {formatMessageTime(msg.createdAt)}
-                  </p>
+                  {/* Time and tick icons */}
+                  <div className="absolute bottom-1 right-2 flex items-center gap-1 text-[10px] text-muted">
+                    <span>{formatMessageTime(msg.createdAt)}</span>
+                    {isSelf &&
+                      (msg.seen ? (
+                        <FaCheckDouble
+                          className="text-green-900 ml-1"
+                          title="Seen"
+                        />
+                      ) : (
+                        <FaCheck className="text-white ml-1" title="Sent" />
+                      ))}
+                  </div>
                 </div>
               </div>
             );

@@ -3,10 +3,11 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
+import MainLayout from "./layouts/MainLayout";
 import { Toaster } from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { ModeToggle } from "@/components/ModeToggle";
+import FriendsPage from "./pages/FriendsPage";
 
 const App = () => {
   const { authUser } = useContext(AuthContext);
@@ -17,17 +18,17 @@ const App = () => {
         <Toaster />
         <Routes>
           <Route
-            path="/"
-            element={authUser ? <HomePage /> : <Navigate to="/login" />}
-          />
-          <Route
             path="/login"
             element={!authUser ? <LoginPage /> : <Navigate to="/" />}
           />
           <Route
-            path="/profile"
-            element={authUser ? <ProfilePage /> : <Navigate to="/login" />}
-          />
+            path="/"
+            element={authUser ? <MainLayout /> : <Navigate to="/login" />}
+          >
+            <Route index element={<HomePage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="friends" element={<FriendsPage />} />
+          </Route>
         </Routes>
       </div>
     </ThemeProvider>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 import assets from "../assets/assets";
+import axios from "axios";
 
 import {
   DropdownMenu,
@@ -25,32 +26,58 @@ import {
 import { Settings } from "lucide-react";
 
 const Sidebar = () => {
-  const {
-    getUsers,
-    users,
-    selectedUser,
-    setSelectedUser,
-    unseenMessages,
-    setUnseenMessages,
-  } = useContext(ChatContext);
+  const { selectedUser, setSelectedUser, unseenMessages, setUnseenMessages } =
+    useContext(ChatContext);
 
   const { logout, onlineUsers, authUser } = useContext(AuthContext);
 
   const [input, setInput] = useState("");
+  const [friends, setFriends] = useState([]);
   const navigate = useNavigate();
 
-  const filteredUsers = input
-    ? users.filter((user) =>
-        user.fullName.toLowerCase().includes(input.toLowerCase())
-      )
-    : users;
-
   useEffect(() => {
-    getUsers();
+    // Fetch friends for sidebar
+    const fetchFriends = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("/api/friends/list", {
+          headers: { token },
+        });
+        setFriends(res.data.friends || []);
+      } catch {
+        console.error("Failed to fetch friends");
+      }
+    };
+    fetchFriends();
+    // Listen for friend list changes
+    const handler = () => fetchFriends();
+    window.addEventListener("friendListChanged", handler);
+    return () => window.removeEventListener("friendListChanged", handler);
   }, [onlineUsers]);
 
+  // WhatsApp-like sorting: most recent chat (sent or received) on top
+  const sortedUsers = [...friends].sort((a, b) => {
+    // If both have lastMessage, compare by createdAt
+    if (a.lastMessage && b.lastMessage) {
+      return (
+        new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt)
+      );
+    }
+    // If only one has lastMessage, that one comes first
+    if (a.lastMessage) return -1;
+    if (b.lastMessage) return 1;
+    // Fallback: compare by updatedAt (user creation date)
+    return new Date(b.updatedAt) - new Date(a.updatedAt);
+  });
+
+  const filteredUsers = input
+    ? sortedUsers.filter((user) =>
+        user.fullName.toLowerCase().includes(input.toLowerCase())
+      )
+    : sortedUsers;
+
   return (
-    <aside className="h-full w-72 bg-background p-2 flex flex-col">
+    <aside className="h-full w-72 bg-background p-2 flex flex-col ">
       {/* Top Section */}
       <div className="pb-4 space-y-4">
         {/* Search */}
@@ -74,6 +101,7 @@ const Sidebar = () => {
           <Button
             variant="outline"
             className="justify-start w-full rounded-xs cursor-pointer"
+            onClick={() => navigate("/friends")}
           >
             Friend
           </Button>
@@ -102,13 +130,17 @@ const Sidebar = () => {
               onClick={() => {
                 setUnseenMessages((prev) => ({ ...prev, [user._id]: 0 }));
                 setSelectedUser(user);
+                navigate("/");
               }}
-              className="w-full justify-start gap-3 rounded-xs px-4 py-2 h-fit cursor-pointer"
+              className="w-full justify-start gap-2 py-0.5 rounded-xs h-fit cursor-pointer"
             >
               {/* Avatar */}
               <div className="relative cursor-pointer">
-                <Avatar className="h-10 w-10 border cursor-pointer">
-                  <AvatarImage src={user?.profilePic || assets.avatar_icon} />
+                <Avatar className="h-10 w-10 border cursor-pointer ">
+                  <AvatarImage
+                    src={user?.profilePic || assets.avatar_icon}
+                    className="object-cover w-10 h-10"
+                  />
                   <AvatarFallback>
                     {user.fullName
                       .split(" ")
@@ -138,20 +170,20 @@ const Sidebar = () => {
           );
         })}
       </div>
-
+      <hr />
       {/* Current User Info + Dropdown */}
-      <div className="rounded-xs mt-2 p-2 bg-foreground/20 border-2 flex items-center justify-between px-2">
+      <div className="rounded-xs mt-2 p-2 bg-card border-2 flex items-center justify-between px-2">
         <div className="flex items-center gap-2 cursor-pointer">
-          <Avatar className="border w-10 h-10 cursor-pointer">
+          <Avatar className="h-10 w-10 border cursor-pointer">
             <AvatarImage
-              className="rounded-full object-cover"
               src={authUser?.profilePic || assets.avatar_icon}
+              className="object-cover h-10 w-10"
             />
             <AvatarFallback>
-              {authUser?.fullName
-                ?.split(" ")
+              {authUser.fullName
+                .split(" ")
                 .map((n) => n[0])
-                .join("") || "U"}
+                .join("")}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">

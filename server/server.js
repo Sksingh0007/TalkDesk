@@ -5,9 +5,9 @@ import http from "http";
 import { connectDB } from "./lib/db.js";
 import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
+import friendRouter from "./routes/friendRoutes.js";
 import { Server } from "socket.io";
 import { log } from "console";
-
 
 //create express and http server
 const app = express();
@@ -15,8 +15,8 @@ const server = http.createServer(app);
 
 //Initialize socket.io server
 export const io = new Server(server, {
-    cors: {origin: "*"}
-})
+  cors: { origin: "*" },
+});
 //Store online users
 export const userSocketMap = {}; // {userid : socket id}
 
@@ -40,28 +40,28 @@ io.on("connection", (socket) => {
     if (userId && userSocketMap[userId]) {
       userSocketMap[userId].delete(socket.id);
       // Log the disconnect event
-        console.log(`User disconnected: ${userId} (socket: ${socket.id})`);
-        
-        if (userSocketMap[userId].size === 0) delete userSocketMap[userId];
+      console.log(`User disconnected: ${userId} (socket: ${socket.id})`);
+
+      if (userSocketMap[userId].size === 0) delete userSocketMap[userId];
     }
 
     io.emit("getOnlineUsers", getOnlineUsers());
   });
-})
+});
 
 //middleware
 app.use(cors());
-app.use(express.json({ limit: "4mb" }));
+app.use(express.json({ limit: "20mb" }));
 
-app.use("/api/status", (req, res) => res.send("Server is live"))
-app.use("/api/auth", userRouter)
-app.use('/api/messages', messageRouter);
+app.use("/api/status", (req, res) => res.send("Server is live"));
+app.use("/api/auth", userRouter);
+app.use("/api/messages", messageRouter);
+app.use("/api/friends", friendRouter);
 
 //connext to mongoDB
 await connectDB();
 
 const PORT = process.env.PORT || 5000;
-
 
 if (process.env.NODE_ENV !== "production") {
   server.listen(PORT, () => {
@@ -71,5 +71,3 @@ if (process.env.NODE_ENV !== "production") {
 
 //exporting server for vercel
 export default server;
-
-

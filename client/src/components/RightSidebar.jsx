@@ -2,8 +2,6 @@ import React, { useContext, useEffect, useState } from "react";
 import assets from "../assets/assets";
 import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import { Button } from "./ui/button";
 
 const RightSidebar = ({ isOpen }) => {
   const { selectedUser, messages } = useContext(ChatContext);
@@ -19,9 +17,13 @@ const RightSidebar = ({ isOpen }) => {
     <>
       {isOpen && (
         <div className="w-[500px] h-full bg-sidebar border-l border-border overflow-y-auto">
-          {/* Cover Section */}
+          {/* Background Image with fallback */}
+
           <div className="relative h-40 bg-accent rounded-r-sm">
-            {/* Profile Image with Online Status Dot */}
+            <img
+              src={selectedUser?.backgroundImage || assets.avatar_icon || ""}
+              className="w-full h-40 object-cover rounded-r-sm z-10"
+            />
             <div className="absolute left-4 -bottom-20">
               <div className="relative w-40 h-40">
                 <img
@@ -40,11 +42,14 @@ const RightSidebar = ({ isOpen }) => {
             </div>
           </div>
 
-          {/* Name (no dot here anymore) */}
+          {/* Name and Username */}
           <div className="pt-25 pl-4 pr-4 bf">
             <h2 className="text-2xl font-semibold text-primary">
-              {selectedUser?.fullName}
+              {selectedUser?.fullName || "No Name"}
             </h2>
+            <p className="text-muted-foreground text-sm">
+              @{selectedUser?.username || "username"}
+            </p>
           </div>
 
           {/* About Box */}

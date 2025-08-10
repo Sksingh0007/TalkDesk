@@ -9,6 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import {
   Card,
   CardHeader,
   CardTitle,
@@ -19,12 +29,14 @@ import {
 const LoginPage = () => {
   const [currState, setCurrState] = useState("Sign up");
   const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [bio, setBio] = useState("");
   const [isDataSubmitted, setIsDataSubmitted] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
 
   const { login } = useContext(AuthContext);
 
@@ -32,7 +44,7 @@ const LoginPage = () => {
     event.preventDefault();
 
     if (!agreeToTerms) {
-      alert("Please Agree to the terms of use & privacy policy.!");
+      setShowTermsDialog(true);
       return;
     }
 
@@ -43,7 +55,7 @@ const LoginPage = () => {
 
     const credentials =
       currState === "Sign up"
-        ? { fullName, email, password, bio }
+        ? { fullName, username, email, password, bio }
         : { email, password };
 
     login(currState === "Sign up" ? "signup" : "login", credentials);
@@ -51,6 +63,28 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center gap-8 sm:justify-evenly max-sm:flex-col backdrop-blur-2xl p-4">
+      <Dialog open={showTermsDialog} onOpenChange={setShowTermsDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Terms of Use & Privacy Policy</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            Please agree to the terms of use and privacy policy to continue.
+          </DialogDescription>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                onClick={() => {
+                  setShowTermsDialog(false);
+                  setAgreeToTerms(true);
+                }}
+              >
+                OK
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Logo Section */}
       <img src={assets.logo_big} alt="Logo" className="w-[min(40vw,500px)]" />
 
@@ -71,12 +105,20 @@ const LoginPage = () => {
 
           <CardContent className="flex flex-col gap-5">
             {currState === "Sign up" && !isDataSubmitted && (
-              <Input
-                placeholder="Full Name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
+              <>
+                <Input
+                  placeholder="Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+                <Input
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </>
             )}
 
             {!isDataSubmitted && (
