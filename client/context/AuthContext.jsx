@@ -16,17 +16,19 @@ export const AuthProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   //Check if the user is authenticated
-  const checkAuth = async () => {
-    try {
-      const { data } = await axios.get("/api/auth/check");
-      if (data.success) {
-        setAuthUser(data.user);
-        connectSocket(data.user);
-      }
-    } catch (error) {
-      toast.error(error.message);
+const checkAuth = async () => {
+  try {
+    const { data } = await axios.get("/api/auth/check");
+    if (data.success) {
+      setAuthUser(data.user);
+      connectSocket(data.user);
     }
-  };
+  } catch (error) {
+    // Don't show error toast for auth check failures
+    console.log("Auth check failed - user not logged in");
+  }
+};
+
 
   //Login function to handle user authentication and socket connection
   const login = async (state, credentials) => {

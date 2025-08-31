@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -8,9 +8,22 @@ import { Toaster } from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import FriendsPage from "./pages/FriendsPage";
+import Loader from "./components/Loader";
 
 const App = () => {
   const { authUser } = useContext(AuthContext);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 2000); 
+    return () => clearTimeout(timer);
+  }, [])
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
